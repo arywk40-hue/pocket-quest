@@ -1,0 +1,11 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+runtime/
+*.gguf
+*.tar.gz
+*.zip
+!dist/Outside-Case-Source.zip
+node_modules/
+.sites-runtime/

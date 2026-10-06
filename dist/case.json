@@ -1,0 +1,107 @@
+{
+  "id": "missing-field-notes",
+  "title": "The Missing Field Notes",
+  "duration": "15–25 minutes",
+  "intro": "At 7:12 this morning, a field notebook arrived without its final page. Its author, Mira, left three clues: a branching line, a repeated mark, and a place where the ground changes. Your task is to reconstruct what she was studying. This is a fictional case. The evidence you collect is real.",
+  "clues": [
+    {
+      "id": "leaf",
+      "number": "01",
+      "title": "The branching line",
+      "subject": "leaf",
+      "task": "Find a fallen leaf. Look closely at its veins. Describe how the smaller lines connect to the main vein.",
+      "prompt": "Do the veins branch from one main line, spread from one point, or run alongside each other? It is fine if you cannot tell.",
+      "audio": "First entry. Mira drew a line that splits, and splits again. Find a fallen leaf on your familiar walk. Study its veins without picking a living plant. What pattern do you see? Take one photograph and a short note, then put your phone away.",
+      "reveal": "The first note reads: 'A path can divide without losing its direction.' Mira was recording patterns, not a destination.",
+      "hint": "Look at a large fallen leaf in even light. Photograph its surface close enough to see the veins."
+    },
+    {
+      "id": "bark",
+      "number": "02",
+      "title": "The repeated mark",
+      "subject": "tree bark",
+      "task": "Find a tree along the same familiar path. Observe its bark without removing or marking it. Look for one repeating feature.",
+      "prompt": "Describe ridges, cracks, flakes, or another pattern you can actually see.",
+      "audio": "Second entry. A witness remembers the same mark appearing over and over. Look at the bark of a nearby tree. Are there ridges, cracks, or flakes? Leave the bark where it is. Record one repeated feature. The next part of the story can wait while you look.",
+      "reveal": "The second note reads: 'What looks like a single surface holds many smaller stories.' Mira was looking closer each time.",
+      "hint": "Use a tree you can reach from your public path. A close photo of the trunk is enough."
+    },
+    {
+      "id": "ground",
+      "number": "03",
+      "title": "The changing ground",
+      "subject": "ground surface",
+      "task": "Compare two nearby patches of ground: one beneath a tree and one more exposed. Stay on your familiar path.",
+      "prompt": "What visible difference do you notice: fallen leaves, colour, texture, or cover? Record uncertainty rather than guessing moisture or temperature.",
+      "audio": "Final entry. Mira wrote that two places, only a few steps apart, can tell different stories. Compare the ground under a tree with an exposed patch nearby. Look for a visible difference in leaves, colour, texture, or cover. Do not infer temperature or moisture from a photograph. This is the last clue. Return with what you really observed.",
+      "reveal": "The final note reads: 'The missing page is the one you write yourself.' Mira left room for another observer.",
+      "hint": "Put both patches in one photograph if possible. If there is no visible difference, that is a valid observation."
+    }
+  ],
+  "endings": {
+    "complete": {
+      "title": "The page was yours all along.",
+      "text": "Mira's notes were an invitation to notice. Your three observations complete the notebook. The mystery ends here; the patterns are still outside."
+    },
+    "open": {
+      "title": "Some pages stay open.",
+      "text": "You returned with observations and honest uncertainty. The notebook is still unfinished, and that is a useful result. Keep what you noticed; revisit a clue another day if you want."
+    }
+  },
+  "branches": {
+    "leaf": {
+      "branching": {
+        "title": "The network sketch",
+        "text": "In the fiction, Mira drew a branching network rather than a route. The missing page may connect separate observations."
+      },
+      "fan": {
+        "title": "The meeting point",
+        "text": "In the fiction, Mira drew several lines meeting at one point. The missing page may bring several viewpoints together."
+      },
+      "parallel": {
+        "title": "The ruled page",
+        "text": "In the fiction, Mira copied lines running alongside one another. Her sketch may be a page layout rather than a map."
+      },
+      "unclear": {
+        "title": "An unreadable sketch",
+        "text": "The sketch stays unresolved. An unclear observation does not need a confident explanation."
+      }
+    },
+    "bark": {
+      "ridged": {
+        "title": "The repeated signal",
+        "text": "In the fiction, Mira used repeated ridges as a rhythm: separate marks belonging to one record."
+      },
+      "flaky": {
+        "title": "The layered archive",
+        "text": "In the fiction, the repeating mark refers to layers. Mira may have hidden a newer entry beneath an older one."
+      },
+      "smooth": {
+        "title": "The missing mark",
+        "text": "In the fiction, the surface offers no strong repeating relief. The witness may have remembered a mark that was never there."
+      },
+      "unclear": {
+        "title": "The witness remains uncertain",
+        "text": "The witness account stays open. Record what is visible and leave the rest unwritten."
+      }
+    },
+    "ground": {
+      "covered": {
+        "title": "The scattered pages",
+        "text": "In the fiction, visible ground cover becomes Mira’s scattered pages. Her final record belongs to the things that gather here."
+      },
+      "bare": {
+        "title": "The exposed page",
+        "text": "In the fiction, a visibly more exposed patch becomes a blank page. The absent record was an invitation to add an observation."
+      },
+      "similar": {
+        "title": "The false contrast",
+        "text": "In the fiction, the two patches do not offer a clear contrast. Mira’s last clue tests whether you can resist inventing a difference."
+      },
+      "unclear": {
+        "title": "The comparison stays open",
+        "text": "The final comparison remains unresolved. Another view may help; a guess will not."
+      }
+    }
+  }
+}
