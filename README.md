@@ -60,7 +60,7 @@ The mode and model name are declared configuration, not attestation of the loade
 - Local notebook, photos in IndexedDB, journal export/import, manual confirmation labelled separately.
 - Downloadable single HTML field kit containing transcripts and any prepared narration.
 - Local Gemma evidence adapter: image normalization and EXIF stripping, structured decisions, one retry, fail-closed errors. Schema checks constrain output; they do not establish that the model interpreted an image correctly.
-- Optional cached ElevenLabs English/Hindi narration and Sentry agent/model/validation spans.
+- Optional ElevenLabs English/Hindi narration cached on disk and in browser storage, plus Sentry agent/model/validation spans.
 - Real-run photo evaluation CLI; software tests and GitHub Actions workflow.
 
 A rejected or uncertain photo cannot select a resolved branch. Text mode can suggest a branch from a note but cannot independently confirm it. Editing or importing evidence clears prior model review. Generated summaries are escaped before display. Story passages and final branches are authored, selected by the model's structured pattern rather than unrestricted model prose.
@@ -73,11 +73,19 @@ Prepare narration if desired, then choose **Download field kit**. Test the file 
 
 ## Partner evidence
 
-Put `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`, and/or `SENTRY_DSN` in `.env`. Keys never go into browser source or Git. Restart the companion after changing configuration.
+Follow [the partner setup and proof guide](docs/PARTNER-SETUP.md). Put `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`, and `SENTRY_DSN` in local `.env`, then restart the companion. Credentials stay on the companion computer.
 
-- **ElevenLabs:** Settings → prepare audio → download field kit. The first preparation consumes account credits; repeated identical scripts/voices use the disk cache. Only predefined scripts leave the machine. Check actual playback offline and keep an account generation receipt.
-- **Sentry:** perform a real review plus a malformed/unavailable model test, then inspect agent → model → validation spans and failures. Receipts in `runtime/review-receipts.jsonl` include review IDs, a Sentry trace ID when enabled, timing and outcomes. Request bodies, notes, image data and local variables are excluded from capture. Verify your own trace before entering the category.
-- **Gemma:** keep actual model outputs and labelled evaluation records. A configured key or an automated test is not partner demonstration evidence.
+Settings includes **Check connections**, **Send tracing check**, **Prepare audio for offline use**, and **Export integration receipts**. A voice lookup checks access without generating speech. A tracing check is labelled diagnostic; confirm its arrival in your Sentry dashboard. Neither is a substitute for a real model run.
+
+With the companion running, collect real account checks and narration cache receipts:
+
+```bash
+python scripts/integration_check.py --prepare-audio --trace-check
+```
+
+First audio generation uses ElevenLabs credits. The command prepares three chapters twice and checks that the repeat uses the disk cache. It saves metadata in `runtime/integration-check.json`; it does not export audio, keys, photos or notes. Existing cached chapters require no new generation. Only predefined chapter scripts go to ElevenLabs.
+
+Perform real Gemma reviews next. Sentry records agent invocation, model requests, response validation and failures. Local receipts include trace IDs, latency, outcomes and token counts when supplied by the model provider. Request bodies and local variables are excluded. Match a successful review and a real failure to dashboard traces before entering the tracing category.
 
 ```bash
 python scripts/doctor.py

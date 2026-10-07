@@ -38,9 +38,9 @@ The companion supports local Gemma through Ollama or llama.cpp. Vision mode norm
 
 There is also an explicit Gemma 2 mode. Gemma 2 accepts text only, so that mode interprets written notes without receiving photographs. It never reports photographic acceptance. The documented default for photo review is Gemma 3 4B; a vision-capable Gemma 4 can also be configured.
 
-ElevenLabs prepares predefined English/Hindi chapters, cached by script and voice. No player's notes or images go to that service. Sentry instruments agent invocation, model calls, validation and retries. Request bodies and local variables are excluded; correlation IDs connect local receipts to traces.
+ElevenLabs prepares predefined English/Hindi chapters, cached by script and voice on the companion and persisted in browser storage for the walk. A repeat preparation records cache hits without another speech request. No player's notes or images go to that service. Sentry instruments agent invocation, model calls, validation and retries. Request bodies and local variables are excluded; correlation IDs connect local receipts to traces. Settings checks selected-voice access, sends explicitly labelled tracing diagnostics, and exports metadata receipts. A setup script collects these checks; dashboard arrival and real inference must still be verified.
 
-**Software verification:** 25 Python checks and 10 JavaScript/DOM checks pass. This includes distinct branches, text-mode boundaries, malformed response refusal, private receipts, offline kit execution, cached narration contracts and Sentry's in-memory span transport. These are software checks with mocked inference, not model accuracy or successful remote account tests.
+**Software verification:** 32 Python checks and 11 JavaScript/DOM checks pass. This includes distinct branches, text-mode boundaries, malformed response refusal, private receipts, offline kit execution, cached narration contracts and Sentry's in-memory span transport. These are software checks with mocked inference, not model accuracy or successful remote account tests.
 
 ## Why Does Open Innovation Matter?
 
@@ -61,6 +61,14 @@ Pending actual results. Before publishing, replace this section with:
 - A specific observation that changed the fictional reconstruction, plus one thing that failed.
 
 The cover is an AI-generated illustration, not a field photograph.
+
+## Partner Demonstration Evidence
+
+Follow [the partner setup guide](https://github.com/arywk40-hue/pocket-quest/blob/main/docs/PARTNER-SETUP.md) before replacing these pending items:
+
+- **Gemma:** model/hardware details, labelled evaluation report, actual branch-changing response and failure or uncertainty.
+- **ElevenLabs:** actual generated chapter playback, first/repeat cache receipt, and disconnected phone playback.
+- **Sentry:** dashboard screenshots matched to a successful review trace ID and a failed review trace ID; explain the failure and observed latency. A connectivity diagnostic alone is not agent tracing evidence.
 
 ## My Agent Session
 

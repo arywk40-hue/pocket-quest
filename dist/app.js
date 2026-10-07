@@ -7,19 +7,35 @@
   const storage = { get(key) { try { return localStorage.getItem(key); } catch { return null; } }, set(key, value) { try { localStorage.setItem(key, value); return true; } catch { return false; } } };
   let state = Core.restoreState(storage.get('outside-case-v1') || JSON.stringify(globalThis.FIELD_INITIAL || null));
   let caseData, screen = 'home', photoDraft = null, busy = false, status = { local: false, model: false, elevenlabs: false, sentry: false };
-  let language = storage.get('outside-language') || 'en-IN';
+  let language = globalThis.FIELD_LANGUAGE || storage.get('outside-language') || 'en-IN';
   let speaking = false, audioPlayer = null, screenSince = document.visibilityState === 'visible' ? Date.now() : null, pocketed = false;
   const photos = new Map(Object.entries(globalThis.FIELD_PHOTOS || {}));
   const audioCache = new Map(Object.entries(globalThis.FIELD_AUDIO || {}));
   let db;
   const dbReady = new Promise(resolve => {
     try {
-      const request = indexedDB.open('outside-case-field-kit', 1);
-      request.onupgradeneeded = () => request.result.createObjectStore('photos');
+      const request = indexedDB.open('outside-case-field-kit', 2);
+      request.onupgradeneeded = () => { for (const name of ['photos', 'audio']) if (!request.result.objectStoreNames.contains(name)) request.result.createObjectStore(name); };
       request.onsuccess = () => { db = request.result; const read = db.transaction('photos').objectStore('photos').getAll(); const keys = db.transaction('photos').objectStore('photos').getAllKeys(); Promise.all([new Promise(r => { read.onsuccess = () => r(read.result); read.onerror = () => r([]); }), new Promise(r => { keys.onsuccess = () => r(keys.result); keys.onerror = () => r([]); })]).then(([v, k]) => { k.forEach((id, i) => photos.set(id, v[i])); resolve(); }); };
       request.onerror = () => resolve();
     } catch { resolve(); }
   });
+  async function loadPreparedAudio() {
+    if (!db || !db.objectStoreNames.contains('audio')) return;
+    await new Promise(resolve => {
+      const req = db.transaction('audio').objectStore('audio').getAll();
+      req.onsuccess = () => { for (const item of req.result) if (!audioCache.has(item.clue_id) && item.language === language && /^data:audio\/mpeg;base64,/.test(item.data)) audioCache.set(item.clue_id, item.data); resolve(); };
+      req.onerror = () => resolve();
+    });
+  }
+  async function persistAudio(pack) {
+    if (!db || !db.objectStoreNames.contains('audio')) { toast('Narration is ready for this session. Download the field kit to keep it.'); return; }
+    await new Promise(resolve => {
+      const tx = db.transaction('audio', 'readwrite');
+      for (const [id, data] of Object.entries(pack.audio)) tx.objectStore('audio').put({clue_id:id,language:pack.language,data,provider:'ElevenLabs'}, `${pack.language}:${id}`);
+      tx.oncomplete = resolve; tx.onerror = () => { toast('Narration could not be saved in browser storage. Download the field kit.'); resolve(); };
+    });
+  }
   function toast(text) { $('#toast').textContent = text; $('#toast').style.display = 'block'; clearTimeout(toast.timer); toast.timer = setTimeout(() => $('#toast').style.display = 'none', 5000); }
   function recordScreenTime() { if (screenSince !== null) { state.elapsedScreenMs += Date.now() - screenSince; screenSince = Date.now(); } }
   function save() { recordScreenTime(); const ok = storage.set('outside-case-v1', JSON.stringify(state)); if (!ok && !save.warned) { toast('This browser cannot save progress. Export your journal before closing.'); save.warned = true; } $('#evidence-count').textContent = `${Object.keys(state.evidence).length} / 3`; }
@@ -114,7 +130,7 @@
       const paths = ['index.html', 'styles.css', 'core.js', 'app.js']; const sources = await Promise.all(paths.map(async p => { const r = await fetch(p); if (!r.ok) throw new Error('Could not download the field kit.'); return r.text(); }));
       const cover = await fetch('case-cover.webp').then(r => r.blob()); const coverData = await new Promise(resolve => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.readAsDataURL(cover); });
       const safeScript = value => value.replace(/<\/script/gi, '<\\/script');
-      const seed = `globalThis.FIELD_CASE=${JSON.stringify(caseData)};globalThis.FIELD_INITIAL=${JSON.stringify(state)};globalThis.FIELD_COVER=${JSON.stringify(coverData)};globalThis.FIELD_AUDIO=${JSON.stringify(Object.fromEntries(audioCache))};globalThis.FIELD_PHOTOS=${JSON.stringify(Object.fromEntries(photos))};`;
+      const seed = `globalThis.FIELD_CASE=${JSON.stringify(caseData)};globalThis.FIELD_INITIAL=${JSON.stringify(state)};globalThis.FIELD_COVER=${JSON.stringify(coverData)};globalThis.FIELD_AUDIO=${JSON.stringify(Object.fromEntries(audioCache))};globalThis.FIELD_LANGUAGE=${JSON.stringify(language)};globalThis.FIELD_PHOTOS=${JSON.stringify(Object.fromEntries(photos))};`;
       let html = sources[0].replace('<link rel="stylesheet" href="styles.css">', `<style>${sources[1].replace(/@import[^;]+;/g, '')}</style>`).replace('<script src="core.js" defer></script>', `<script>${safeScript(seed + sources[2])}</script>`).replace('<script src="app.js" defer></script>', `<script defer>${safeScript(sources[3])}</script>`);
       // Inline classic scripts run immediately; wait until the body exists.
       html = html.replace('<script defer>', '<script>document.addEventListener("DOMContentLoaded",()=>{').replace('</script>\n</head>', '\n});</script>\n</head>');
@@ -124,12 +140,23 @@
   async function prepareAudio() {
     if (!status.elevenlabs) { toast('Connect ElevenLabs in the companion service first.'); return; }
     const button = $('#prepare-audio'); button.disabled = true; button.textContent = 'Preparing the three chapters…';
-    try { const response = await fetch('/api/audio-pack', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ language }), signal: AbortSignal.timeout(180000) }); const pack = await response.json(); if (!response.ok) throw new Error(pack.detail || 'Narration preparation failed.'); for (const [id, audio] of Object.entries(pack.audio)) audioCache.set(id, audio); toast('Narration is ready. Download the field kit to take it offline.'); if (screen === 'play') $('#audio-mode').textContent = 'Prepared ElevenLabs narration'; } catch (error) { toast(error.message); } finally { button.disabled = false; button.textContent = 'Prepare audio for offline use'; }
+    try { const response = await fetch('/api/audio-pack', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ language }), signal: AbortSignal.timeout(180000) }); const pack = await response.json(); if (!response.ok) throw new Error(pack.detail || 'Narration preparation failed.'); for (const [id, audio] of Object.entries(pack.audio)) audioCache.set(id, audio); await persistAudio(pack); toast('Narration is ready. Download the field kit to take it offline.'); if (screen === 'play') $('#audio-mode').textContent = 'Prepared ElevenLabs narration'; } catch (error) { toast(error.message); } finally { button.disabled = false; button.textContent = 'Prepare audio for offline use'; }
   }
   function settings() {
-    $('#settings-content').innerHTML = `<div class="settings-block"><h3>Evidence review</h3><p>${modelLabel()}</p><p>${status.model ? (status.model_mode === 'text' ? 'Gemma interprets your written notes. It does not receive or review photos in this mode.' : 'Photos are reviewed by the model on your companion computer.') : 'Save observations here and confirm them yourself, or open this app through the local companion to use Gemma.'}</p></div><div class="settings-block"><h3>Narration</h3><p>${audioCache.size ? `${audioCache.size} prepared chapters in this session.` : 'Device voice is available where supported. Offline availability depends on installed voices.'}</p><label for="audio-language">Prepared narration language</label><select id="audio-language"><option value="en-IN" ${language === 'en-IN' ? 'selected' : ''}>English</option><option value="hi-IN" ${language === 'hi-IN' ? 'selected' : ''}>Hindi</option></select><button class="secondary" id="prepare-audio" ${status.elevenlabs ? '' : 'disabled'}>Prepare audio for offline use</button><p class="fine">${status.elevenlabs ? 'ElevenLabs receives chapter text. No photos or observation notes are sent.' : 'ElevenLabs is not connected. Device voice does not count as ElevenLabs use.'}</p></div><div class="settings-block"><h3>Tracing</h3><p>${status.sentry ? 'Sentry enabled on the companion service. Photos and notes are excluded.' : 'Sentry is not connected. No partner tracing evidence has been collected.'}</p></div><div class="settings-block"><button class="text-button" id="restart-case">Clear notebook and start again</button><p class="fine">Export your journal first if you want to keep it.</p></div>`;
-    $('#audio-language').onchange = event => { language = event.target.value; storage.set('outside-language', language); audioCache.clear(); };
+    $('#settings-content').innerHTML = `<div class="settings-block"><h3>Evidence review</h3><p>${modelLabel()}</p><p>${status.model ? (status.model_mode === 'text' ? 'Gemma interprets your written notes. It does not receive or review photos in this mode.' : 'Photos are reviewed by the model on your companion computer.') : 'Save observations here and confirm them yourself, or open this app through the local companion to use Gemma.'}</p></div><div class="settings-block"><h3>Narration</h3><p>${audioCache.size ? `${audioCache.size} prepared chapters on this device.` : 'Device voice is available where supported. Offline availability depends on installed voices.'}</p><label for="audio-language">Prepared narration language</label><select id="audio-language"><option value="en-IN" ${language === 'en-IN' ? 'selected' : ''}>English</option><option value="hi-IN" ${language === 'hi-IN' ? 'selected' : ''}>Hindi</option></select><button class="secondary" id="prepare-audio" ${status.elevenlabs ? '' : 'disabled'}>Prepare audio for offline use</button><p class="fine">${status.elevenlabs ? 'ElevenLabs receives chapter text. No photos or observation notes are sent.' : 'ElevenLabs is not connected. Device voice does not count as ElevenLabs use.'}</p></div><div class="settings-block"><h3>Tracing</h3><p>${status.sentry ? 'Sentry enabled on the companion service. Photos and notes are excluded.' : 'Sentry is not connected. No partner tracing evidence has been collected.'}</p><button class="secondary" id="check-connections" ${status.local ? '' : 'disabled'}>Check connections</button><button class="secondary" id="trace-check" ${status.sentry ? '' : 'disabled'}>Send tracing check</button><button class="text-button" id="export-integration-evidence" ${status.local ? '' : 'disabled'}>Export integration receipts</button><p id="connection-result" class="fine" aria-live="polite"></p></div><div class="settings-block"><button class="text-button" id="restart-case">Clear notebook and start again</button><p class="fine">Export your journal first if you want to keep it.</p></div>`;
+    $('#audio-language').onchange = async event => { language = event.target.value; storage.set('outside-language', language); audioCache.clear(); await loadPreparedAudio(); };
     $('#prepare-audio').onclick = prepareAudio;
+    async function connectionAction(path, method, render) {
+      try { const r = await fetch(path, {method, signal:AbortSignal.timeout(20000)}); const data = await r.json(); if (!r.ok) throw new Error(data.detail || 'Connection check failed.'); render(data); }
+      catch(error) { $('#connection-result').textContent = error.message; }
+    }
+    $('#check-connections').onclick = () => connectionAction('/api/integrations/check','POST', data => {
+      $('#connection-result').textContent = `ElevenLabs: ${data.elevenlabs.verified ? `voice verified (${data.elevenlabs.voice_name})` : data.elevenlabs.error || 'not verified'}. Sentry: ${data.sentry.configured ? 'configured; confirm receipt in dashboard' : data.sentry.error || 'not configured'}.`;
+    });
+    $('#trace-check').onclick = () => connectionAction('/api/trace-check','POST', data => {
+      $('#connection-result').textContent = `Diagnostic trace: ${data.sentry_trace_id}. Event: ${data.event_id || 'not returned'}. Confirm arrival in Sentry. This is a connectivity check, not AI inference.`;
+    });
+    $('#export-integration-evidence').onclick = () => connectionAction('/api/integrations/evidence','GET', data => download('Outside-Case-Integration-Receipts.json', JSON.stringify(data,null,2),'application/json'));
     $('#restart-case').onclick = () => { if (confirm('Delete this device’s case progress and photos?')) { stopAudio(); state = Core.freshState(); photos.clear(); if (db) db.transaction('photos', 'readwrite').objectStore('photos').clear(); save(); $('#settings-dialog').close(); home(); } }; $('#settings-dialog').showModal();
   }
   document.addEventListener('visibilitychange', () => { recordScreenTime(); screenSince = document.visibilityState === 'visible' && !pocketed ? Date.now() : null; save(); });
@@ -137,7 +164,7 @@
   $('#home-link').onclick = event => { event.preventDefault(); saveUnsavedNote(); home(); };
   $('#notebook-button').onclick = notebook; $('#settings-button').onclick = settings; $('#about-button').onclick = () => $('#about-dialog').showModal();
   document.querySelectorAll('[data-close]').forEach(btn => btn.onclick = () => btn.closest('dialog').close());
-  try { caseData = globalThis.FIELD_CASE || await fetch('case.json').then(r => { if (!r.ok) throw new Error(); return r.json(); }); await Promise.all([dbReady, readStatus()]); home(); save(); } catch { $('#app').innerHTML = '<p>The case could not be loaded. Check your connection or open the downloaded field kit.</p>'; return; }
+  try { caseData = globalThis.FIELD_CASE || await fetch('case.json').then(r => { if (!r.ok) throw new Error(); return r.json(); }); await Promise.all([dbReady, readStatus()]); await loadPreparedAudio(); home(); save(); } catch { $('#app').innerHTML = '<p>The case could not be loaded. Check your connection or open the downloaded field kit.</p>'; return; }
   if (document.modelContext?.registerTool) {
     const lifecycle = new AbortController();
     try { for (const tool of [{ name: 'read_case_progress', title: 'Read case progress', description: 'Read collected clue statuses without returning private notes or photos.', inputSchema: { type: 'object', properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, untrustedContentHint: false }, execute(input) { if (!input || Object.keys(input).length) throw new Error('No parameters expected.'); return { activeClue: caseData.clues[state.active].id, clues: Object.fromEntries(Object.entries(state.evidence).map(([id, e]) => [id, e.status])) }; } }, { name: 'start_outside_case', title: 'Start Outside Case', description: 'Start or resume the visible outdoor case. Does not verify evidence or complete clues.', inputSchema: { type: 'object', properties: {}, additionalProperties: false }, annotations: { readOnlyHint: false, untrustedContentHint: false }, async execute(input) { if (!input || Object.keys(input).length) throw new Error('No parameters expected.'); if (!state.startedAt) state.startedAt = new Date().toISOString(); save(); await play(); return { activeClue: caseData.clues[state.active].id }; } }]) await document.modelContext.registerTool(tool, { signal: lifecycle.signal }); } catch { /* Optional browser API. */ }

@@ -6,7 +6,7 @@ const {JSDOM, VirtualConsole} = require('jsdom');
 const root = path.join(__dirname, '..', 'dist');
 const caseData = JSON.parse(fs.readFileSync(path.join(root, 'case.json'), 'utf8'));
 const tick = () => new Promise(resolve => setTimeout(resolve, 20));
-async function setup(html, offline = false) {
+async function setup(html, offline = false, api = null) {
   const errors = [], tools = new Map();
   const virtualConsole = new VirtualConsole(); virtualConsole.on('jsdomError', e => errors.push(e.message));
   const dom = new JSDOM(html || fs.readFileSync(path.join(root, 'index.html'), 'utf8'), { url: offline ? 'file:///field-kit.html' : 'https://test.example/', runScripts: offline ? 'dangerously' : 'outside-only', virtualConsole,
@@ -17,7 +17,8 @@ async function setup(html, offline = false) {
       window.confirm = () => true;
       window.document.modelContext = {registerTool: async tool => tools.set(tool.name, tool)};
       window.fetch = async url => {
-        if (url === '/api/status') return {ok: false};
+        if (url === '/api/status') return api ? {ok:true,headers:{get:()=> 'application/json'},json:async()=>api.status} : {ok: false};
+        if (api && url.startsWith('/api/')) return {ok:true,json:async()=>api.responses[url]};
         const source = fs.readFileSync(path.join(root, url));
         return {ok: true, text: async () => source.toString(), json: async () => JSON.parse(source), blob: async () => new window.Blob([source])};
       };
@@ -71,4 +72,20 @@ test('player-selected patterns reconstruct a distinct fictional ending', async (
   assert.match(document.body.textContent,/A page layout, not a map/);
   assert.match(document.body.textContent,/The last clue was a test/);
   assert.match(document.body.textContent,/Player-confirmed/);window.close();
+});
+
+test('connection settings show account results safely and label tracing diagnostic', async () => {
+  const {document,window,errors}=await setup(null,false,{status:{model:false,elevenlabs:true,sentry:true},responses:{
+    '/api/integrations/check':{elevenlabs:{verified:true,voice_name:'<img src=x onerror="window.injected=true">'},sentry:{configured:true}},
+    '/api/trace-check':{event_id:'actual-test-id',sentry_trace_id:'test-trace',notice:'This diagnostic is not an AI run.'}
+  }});
+  document.querySelector('#settings-button').click();
+  assert.equal(document.querySelector('#check-connections').disabled,false);
+  document.querySelector('#check-connections').click(); await tick();
+  assert.match(document.querySelector('#connection-result').textContent,/img src/);
+  assert.equal(document.querySelector('#connection-result img'),null);
+  document.querySelector('#trace-check').click(); await tick();
+  assert.match(document.querySelector('#connection-result').textContent,/diagnostic/i);
+  assert.match(document.querySelector('#connection-result').textContent,/test-trace/);
+  assert.deepEqual(errors,[]);window.close();
 });

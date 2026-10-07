@@ -67,6 +67,9 @@ def test_absent_model_does_not_fake_acceptance(client, monkeypatch):
     async def not_ready(): return False
     monkeypatch.setattr(companion, "model_ready", not_ready)
     assert client.post("/api/review", json=request()).status_code == 503
+    receipt=json.loads(companion.TRACE_PATH.read_text())
+    assert receipt['failure_type']=='ModelUnavailable' and receipt['attempts']==0
+    assert receipt['status']=='failed'
 
 
 @pytest.mark.parametrize("bad", ["data:image/svg+xml;base64,PHN2Zy8+", "data:image/png;base64,bad!", "data:image/jpeg;base64,YWJj"])
@@ -176,7 +179,7 @@ def test_elevenlabs_chapters_are_cached_and_do_not_send_observations(client, mon
     first=client.post('/api/audio-pack',json={'language':'en-IN'})
     second=client.post('/api/audio-pack',json={'language':'en-IN'})
     assert first.status_code == second.status_code == 200
-    assert len(calls)==3 and first.json()==second.json()
+    assert len(calls)==3 and first.json()['audio']==second.json()['audio']
     assert all(set(call)=={'text','model_id'} for call in calls)
     assert set(first.json()['audio'])=={'leaf','bark','ground'}
 
@@ -202,7 +205,7 @@ def test_sentry_span_contract_and_failure_are_captured_without_evidence(client, 
             payload=request(); payload['note']='PRIVATE SENTINEL OBSERVATION'
             response=client.post('/api/review',json=payload)
             assert response.status_code==502
-    assert len(captured)==1
+    assert any(item.get('transaction')=='outside_case.review' for item in captured)
     def attr(span, key):
         return span.get('attributes',{}).get(key,{}).get('value')
     assert any(attr(s,'sentry.op')=='gen_ai.invoke_agent' and s['status']=='error' for s in streamed)
@@ -210,3 +213,57 @@ def test_sentry_span_contract_and_failure_are_captured_without_evidence(client, 
     assert any(attr(s,'gen_ai.request.model')==companion.MODEL_NAME for s in streamed)
     serialized=json.dumps({'transactions':captured,'streamed_spans':streamed})
     assert 'PRIVATE SENTINEL OBSERVATION' not in serialized and 'data:image' not in serialized
+
+
+@pytest.mark.parametrize('http_status,content_type,body', [(200,'application/json',b'{}'),(200,'audio/mpeg',b''),(401,'application/json',b'{}'),(429,'application/json',b'{}')])
+def test_audio_provider_failure_returns_error_and_private_receipt(client,monkeypatch,tmp_path,http_status,content_type,body):
+    monkeypatch.setattr(companion,'ROOT',tmp_path)
+    monkeypatch.setenv('ELEVENLABS_API_KEY','PRIVATE_KEY_SENTINEL')
+    monkeypatch.setenv('ELEVENLABS_VOICE_ID','testvoice')
+    class BadClient:
+        def __init__(self,**kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self,*args): pass
+        async def post(self,url,**kwargs):
+            return httpx.Response(http_status,request=httpx.Request('POST',url),headers={'content-type':content_type},content=body)
+    monkeypatch.setattr(companion.httpx,'AsyncClient',BadClient)
+    response=client.post('/api/audio-pack',json={'language':'en-IN'})
+    assert response.status_code==502
+    receipt=(tmp_path/'runtime/audio-pack-receipts.jsonl').read_text()
+    assert 'PRIVATE_KEY_SENTINEL' not in receipt
+    assert json.loads(receipt)['status']=='failed'
+    assert not list((tmp_path/'runtime/audio').glob('*.mp3'))
+
+
+def test_account_check_is_not_paid_generation_and_hides_key(client,monkeypatch):
+    monkeypatch.setenv('ELEVENLABS_API_KEY','PRIVATE_KEY_SENTINEL')
+    monkeypatch.setenv('ELEVENLABS_VOICE_ID','testvoice')
+    calls=[]
+    class VoiceClient:
+        def __init__(self,**kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self,*args): pass
+        async def get(self,url,**kwargs):
+            calls.append(url)
+            return httpx.Response(200,request=httpx.Request('GET',url),json={'voice_id':'testvoice','name':'Selected test voice'})
+    monkeypatch.setattr(companion.httpx,'AsyncClient',VoiceClient)
+    response=client.post('/api/integrations/check')
+    assert response.json()['elevenlabs']['verified'] is True
+    assert calls==['https://api.elevenlabs.io/v1/voices/testvoice']
+    assert 'PRIVATE_KEY_SENTINEL' not in response.text
+    assert response.json()['sentry']['verified_remote'] is False
+
+
+def test_trace_check_missing_dsn_is_not_fake_success(client,monkeypatch):
+    monkeypatch.setattr(companion,'SENTRY_ENABLED',False)
+    assert client.post('/api/trace-check').status_code==503
+
+
+def test_evidence_export_excludes_extra_private_fields(client,monkeypatch,tmp_path):
+    monkeypatch.setattr(companion,'ROOT',tmp_path)
+    companion.TRACE_PATH.parent.mkdir(parents=True,exist_ok=True)
+    companion.TRACE_PATH.write_text(json.dumps({'id':'x','status':'accepted','note':'PRIVATE_NOTE','image':'data:image/private'})+'\n')
+    result=client.get('/api/integrations/evidence')
+    assert result.status_code==200
+    assert result.json()['reviews']==[{'id':'x','status':'accepted'}]
+    assert 'PRIVATE_NOTE' not in result.text and 'data:image/private' not in result.text
