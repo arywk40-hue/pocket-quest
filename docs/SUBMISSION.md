@@ -1,82 +1,66 @@
 ---
-title: "Outside Case: solve a mystery by noticing what is already outside"
+title: "Outside Case: a local Gemma mystery that asks you to put your phone away"
 published: false
 tags: devchallenge, hf26challenge, ai, opensource
 ---
-
-> Unpublished draft. Software checks pass. A public player walkthrough and a local Gemma smoke check are available. Outdoor use, field-photo evaluation, partner-account demonstrations and phone testing remain pending. Update this post with actual results before publication.
 
 *This is a submission for the [Hacktoberfest Open-Source AI Challenge Week 1: Touch Grass](https://dev.to/challenges/hacktoberfest-week1-2026-10-05).*
 
 ## What I Built
 
-Outside Case turns a familiar walk into a short audio detective mystery. Its first case, **The Missing Field Notes**, begins with Mira's fictional notebook and a missing final page. Her clues ask you to look at a fallen leaf, a tree's bark, and two nearby patches of ground.
+Outside Case turns a familiar walk into a short detective mystery. I wanted a reason to look closely at ordinary things outside: a fallen leaf, a tree's bark, and the ground beneath it.
 
-Listen, pocket the phone, and observe. There is no countdown and no generated route. You bring back a note and an optional photo.
+The first case, **The Missing Field Notes**, asks you to listen or read a chapter, pocket your phone, and make an observation. You return with a note and an optional photograph. Local Gemma reviews the evidence and selects a pattern that changes the fictional reconstruction.
 
-What you observe changes the fictional reconstruction. Parallel leaf veins suggest a ruled page; branching veins suggest a connected record. Flaky bark suggests a layered archive; smooth bark casts doubt on the fictional witness. A ground comparison with no visible difference is a valid result, not a reason to invent one. These are story meanings, not botanical or historical claims.
+A leaf with parallel veins suggests a ruled page in the story; branching veins suggest a connected record. Flaky bark points toward a layered archive. These are authored story meanings. The app does not identify species or generate walking routes.
 
-Gemma selects a structured pattern; authored passages combine those patterns into the final page. Unclear evidence leaves the corresponding clue open. Player confirmations are labelled separately from model photo review.
+Unclear evidence keeps a clue open. Players can also confirm their own observations, with those confirmations labelled separately from model reviews.
 
 ## Demo
 
-[Public player walkthrough](https://outside-case.arywk40.chatgpt.site) — demonstrates the case, notebook, and authored branches. The hosted version does not run local Gemma, ElevenLabs, or Sentry. Run the [open-source companion](https://github.com/arywk40-hue/pocket-quest) to review photographs.
+**[Try the public player walkthrough](https://outside-case.arywk40.chatgpt.site).**
 
-**Outdoor video and field trial:** pending. The public walkthrough meets the demo-link requirement, while a recording of actual outdoor use would show the intended experience more clearly. No outdoor trial has yet been recorded.
+The walkthrough demonstrates the story and notebook. Gemma photo review runs through the local companion on your computer. The portable field kit supports collecting observations outside and reviewing them on the laptop afterward.
+
+<!-- Insert an actual app screenshot here using DEV's image uploader. -->
 
 ## Code
 
-**GitHub:** [arywk40-hue/pocket-quest](https://github.com/arywk40-hue/pocket-quest).
+**[GitHub: arywk40-hue/pocket-quest](https://github.com/arywk40-hue/pocket-quest)**
 
-The new project's MIT source includes the browser mystery, FastAPI companion, constrained story branches, local model configuration, live evaluation runner, software tests, and an outdoor recording guide. Model weights and dependencies retain their own terms.
+I started this project on October 6, 2026. The source is MIT licensed; model weights and dependencies retain their own terms. Setup instructions, the evaluation runner, and tests are included in the repository.
 
 ## How I Built It
 
-The frontend uses plain HTML, CSS and JavaScript. Notes stay in browser storage and photographs in IndexedDB. A downloaded field kit includes transcripts, progress and any prepared audio. Export/import carries the notebook between the phone and the companion laptop. Import clears old model review so it is not treated as a fresh check.
+The browser app uses plain HTML, CSS, and JavaScript. Notes stay in browser storage and photos in IndexedDB. Journal export/import connects the phone workflow to a FastAPI companion.
 
-The companion supports local Gemma through Ollama or llama.cpp. Vision mode normalizes the image, strips EXIF, and requests a status, summary and pattern. Only the clue's allowed patterns can select story passages. Invalid responses get one retry and then a visible failure. Prompting and JSON validation cannot prove a model's visual judgment is correct.
+The companion uses **Gemma 3 4B vision through local Ollama**. It normalizes photographs, strips EXIF, and requests structured output: a decision, summary, and allowed clue pattern. Accepted patterns select authored story passages. Invalid output gets one retry and then a visible failure. Editing or importing evidence clears earlier model review.
 
-There is also an explicit Gemma 2 mode. Gemma 2 accepts text only, so that mode interprets written notes without receiving photographs. It never reports photographic acceptance. The documented default for photo review is Gemma 3 4B; a vision-capable Gemma 4 can also be configured.
+**Sentry** instruments the review workflow, including model readiness, agent invocation, model calls, validation, retries, and failures. Local receipts record trace IDs, outcomes, and timing. Request bodies and local variables are excluded, and default PII capture is disabled. The Sentry project is configured; remote dashboard verification is still pending.
 
-ElevenLabs prepares predefined English/Hindi chapters, cached by script and voice on the companion and persisted in browser storage for the walk. A repeat preparation records cache hits without another speech request. No player's notes or images go to that service. Sentry instruments agent invocation, model calls, validation and retries. Request bodies and local variables are excluded; correlation IDs connect local receipts to traces. Settings checks selected-voice access, sends explicitly labelled tracing diagnostics, and exports metadata receipts. A setup script collects these checks; dashboard arrival and real inference must still be verified.
+<!-- Insert a real Sentry model-review trace screenshot after confirming dashboard arrival. A setup screen or diagnostic event is not a model trace. Update the verification sentence above only after checking it. -->
 
-**Software verification:** 32 Python checks and 11 JavaScript/DOM checks pass. This includes distinct branches, text-mode boundaries, malformed response refusal, private receipts, offline kit execution, cached narration contracts and Sentry's in-memory span transport. These are software checks with mocked inference, not model accuracy or successful remote account tests. A separate live local Gemma smoke check rejected a synthetic blank white image; real field-photo evaluation remains pending.
+**Verification:** 32 Python tests and 11 JavaScript/DOM tests pass. They check software behavior using mocked providers. A separate live Gemma smoke request rejected a synthetic blank white image as unrelated evidence, taking 38.6 seconds including initial loading. That demonstrates a real integration request, not field-photo accuracy.
+
+An outdoor trial, real-photo evaluation, and native phone testing remain future verification work. I have not measured general model accuracy or claimed an outdoor test that has not happened.
 
 ## Why Does Open Innovation Matter?
 
-Open weights and an open inference runtime let the evidence review run on a computer the player controls. After downloading the model, that step does not need a hosted inference account or send private photographs and notes to a remote model provider.
+The evidence reviewer runs on a computer the player controls. After downloading the weights, photographs and notes can stay with the local model rather than being sent to a hosted inference provider.
 
-The prompts, pattern vocabulary and story mapping are inspectable. I can swap models and measure them using the same labelled cases. That matters here because accepting an unrelated photograph would weaken the entire game mechanic.
+The prompts, allowed patterns, and story mapping are inspectable. I can change the model or prompts and evaluate them against labelled examples. This matters because an unrelated photo should not unlock a resolved clue.
 
-There are real limits: weights need an initial download, memory and compute are not free, and this field kit does not run a model inside a disconnected phone. The intended portable flow is to collect outside and review on the laptop afterward. Optional ElevenLabs and Sentry are hosted services. I have not yet demonstrated an offline model run or measured an advantage over a closed API.
-
-## Taking It Outside
-
-Pending actual results. Before publishing, replace this section with:
-
-- Hardware, browser, model version/weight hashes and inference settings.
-- Whether the portable kit opened and played prepared narration without connectivity.
-- Actual walking duration and approximate visible app time.
-- Human-labelled evaluation of valid, unrelated, blurry and misleading-note cases; report false acceptances, uncertainty, failures and latency.
-- A specific observation that changed the fictional reconstruction, plus one thing that failed.
-
-The cover is an AI-generated illustration, not a field photograph.
-
-## Partner Demonstration Evidence
-
-Follow [the partner setup guide](https://github.com/arywk40-hue/pocket-quest/blob/main/docs/PARTNER-SETUP.md) before replacing these pending items:
-
-- **Gemma:** model/hardware details, labelled evaluation report, actual branch-changing response and failure or uncertainty.
-- **Sentry:** dashboard screenshots matched to a successful review trace ID and a failed review trace ID; explain the failure and observed latency. A connectivity diagnostic alone is not agent tracing evidence.
+Local inference still needs memory and compute. The downloaded phone field kit contains the story and notebook, not Gemma's weights. Sentry remains an optional hosted service for trace metadata.
 
 ## My Agent Session
 
-Built with Codex assistance. Add a genuine exported session link if available.
+I built this with Codex assistance and checked the implementation with automated tests. The cover is an AI-generated illustration, not a field photograph.
 
 ## Prize Categories
 
-**Best Use of Gemma:** local Gemma 3 4B is integrated, and one synthetic blank-image smoke request returned a structured rejection. Add genuine field-photo results before claiming the quality of its visual decisions.
+- **Best Use of Gemma:** local Gemma 3 4B vision reviews evidence that determines the story's branches.
+- **Best Use of Sentry Agent Tracing — intended:** review instrumentation is implemented and the project is configured; remote trace verification remains pending.
 
-**Best Use of Sentry Agent Tracing:** planned. Add the category once a real Gemma review and a failure produce matching remote Sentry traces. A diagnostic event alone is insufficient.
+What would you change to make a walk feel like a mystery while keeping the screen time short? I'd welcome questions and feedback in the comments.
 
 Author: Ariyan Bhakat.

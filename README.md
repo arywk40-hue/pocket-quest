@@ -118,6 +118,6 @@ Node 24 is used for the DOM harness; running the app does not require Node. Test
 
 ## Submission status
 
-Implementation and software checks are available. A local Gemma 3 4B vision smoke check on October 6 returned a structured rejection for a synthetic blank image; it is not a field-photo accuracy evaluation. **Real-photo evaluation, remote Sentry traces, native phone testing and a filmed outdoor trial remain pending.** A Sentry DSN is still missing from this local configuration. Complete the relevant demonstrations before claiming the partner categories. The hosted walkthrough supports player review only.
+Implementation and software checks are available. A local Gemma 3 4B vision smoke check on October 6 returned a structured rejection for a synthetic blank image; it is not a field-photo accuracy evaluation. **Real-photo evaluation, remote Sentry traces, native phone testing and a filmed outdoor trial remain pending.** A Sentry DSN is configured locally; remote trace arrival still needs verification. Complete the relevant demonstrations before claiming the partner categories. The hosted walkthrough supports player review only.
 
 See [submission draft](docs/SUBMISSION.md), [architecture](docs/ARCHITECTURE.md), [evaluation protocol](evaluation/README.md), and [verification record](docs/TESTING.md).
