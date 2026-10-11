@@ -55,7 +55,7 @@ If no trace arrives, verify the DSN, project/time filter, connectivity and SDK c
 
 Run the labelled photo evaluation in `evaluation/README.md` and record the outdoor trial in `docs/FIELD-TRIAL.md`. Keep successful, unrelated, blurry and misleading-note cases; report uncertainty, false acceptances and latency honestly.
 
-Replace pending sections in `docs/SUBMISSION.md` with actual results. Add a public video showing listening, phone pocketed, observations, narration playback, real model response and approximate visible app time. Include real Sentry screenshots and ElevenLabs playback/cache receipts. The hosted private walkthrough is not a public judge demo.
+Replace pending sections in `docs/SUBMISSION.md` with actual results. The [public player walkthrough](https://outside-case.arywk40.chatgpt.site) demonstrates the browser story. Add an outdoor video showing listening, phone pocketed, observations, narration playback, real model response and approximate visible app time if available. Include real Sentry screenshots and ElevenLabs playback/cache receipts when entering those categories. The hosted walkthrough does not run the local integrations.
 
 Export integration receipts after the reviews so they include those trace IDs. Inspect all selected evidence before publication. Keep private photos, runtime files and credentials out of Git; publish only the evidence you intend to share.
 

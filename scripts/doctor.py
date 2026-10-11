@@ -1,6 +1,21 @@
 """Check actual runtime connectivity without exposing credentials or spending audio credits."""
 import json
+import os
+from pathlib import Path
 import httpx
+from dotenv import dotenv_values
+
+root = Path(__file__).resolve().parents[1]
+settings = dotenv_values(root / '.env')
+for partner, keys in {
+    'ElevenLabs': ('ELEVENLABS_API_KEY', 'ELEVENLABS_VOICE_ID'),
+    'Sentry Agent Tracing': ('SENTRY_DSN',),
+}.items():
+    missing = [key for key in keys if not os.environ.get(key, settings.get(key))]
+    if missing:
+        print(f'{partner}: add {", ".join(missing)} to {root / ".env"}')
+    else:
+        print(f'{partner}: settings present; restart the companion after changes.')
 
 with httpx.Client(timeout=5, trust_env=False) as client:
     try:

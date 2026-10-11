@@ -4,7 +4,7 @@ published: false
 tags: devchallenge, hf26challenge, ai, opensource
 ---
 
-> Unpublished draft. Software checks pass. Live model evaluation, partner-account demonstrations, phone testing and real outdoor video remain pending. Fill the evidence gaps before publication.
+> Unpublished draft. Software checks pass. A public player walkthrough and a local Gemma smoke check are available. Outdoor use, field-photo evaluation, partner-account demonstrations and phone testing remain pending. Update this post with actual results before publication.
 
 *This is a submission for the [Hacktoberfest Open-Source AI Challenge Week 1: Touch Grass](https://dev.to/challenges/hacktoberfest-week1-2026-10-05).*
 
@@ -20,9 +20,9 @@ Gemma selects a structured pattern; authored passages combine those patterns int
 
 ## Demo
 
-[Author's private walkthrough](https://outside-case.arywk40.chatgpt.site) — static player-review version. It is not currently judge-accessible and does not run the local integrations.
+[Public player walkthrough](https://outside-case.arywk40.chatgpt.site) — demonstrates the case, notebook, and authored branches. The hosted version does not run local Gemma, ElevenLabs, or Sentry. Run the [open-source companion](https://github.com/arywk40-hue/pocket-quest) to review photographs.
 
-**Public video:** pending. The recording will show actual narration preparation, a phone being pocketed, outdoor clue collection, journal import and a real local model response, including a failure or uncertainty. No outdoor trial has yet been recorded.
+**Outdoor video and field trial:** pending. The public walkthrough meets the demo-link requirement, while a recording of actual outdoor use would show the intended experience more clearly. No outdoor trial has yet been recorded.
 
 ## Code
 
@@ -40,7 +40,7 @@ There is also an explicit Gemma 2 mode. Gemma 2 accepts text only, so that mode 
 
 ElevenLabs prepares predefined English/Hindi chapters, cached by script and voice on the companion and persisted in browser storage for the walk. A repeat preparation records cache hits without another speech request. No player's notes or images go to that service. Sentry instruments agent invocation, model calls, validation and retries. Request bodies and local variables are excluded; correlation IDs connect local receipts to traces. Settings checks selected-voice access, sends explicitly labelled tracing diagnostics, and exports metadata receipts. A setup script collects these checks; dashboard arrival and real inference must still be verified.
 
-**Software verification:** 32 Python checks and 11 JavaScript/DOM checks pass. This includes distinct branches, text-mode boundaries, malformed response refusal, private receipts, offline kit execution, cached narration contracts and Sentry's in-memory span transport. These are software checks with mocked inference, not model accuracy or successful remote account tests.
+**Software verification:** 32 Python checks and 11 JavaScript/DOM checks pass. This includes distinct branches, text-mode boundaries, malformed response refusal, private receipts, offline kit execution, cached narration contracts and Sentry's in-memory span transport. These are software checks with mocked inference, not model accuracy or successful remote account tests. A separate live local Gemma smoke check rejected a synthetic blank white image; real field-photo evaluation remains pending.
 
 ## Why Does Open Innovation Matter?
 
@@ -76,6 +76,8 @@ Built with Codex assistance. Add a genuine exported session link if available.
 
 ## Prize Categories
 
-**Intended, pending demonstration:** Best Use of Gemma, Best Use of ElevenLabs, and Best Use of Sentry Agent Tracing. Claim only integrations actually run and evidenced in the final post.
+**Best Use of Gemma:** local Gemma 3 4B is integrated, and one synthetic blank-image smoke request returned a structured rejection. Add genuine field-photo results before claiming the quality of its visual decisions.
+
+**ElevenLabs and Sentry Agent Tracing:** add these categories only after successful account-backed runs and evidence from the generated audio and remote traces.
 
 Author: Ariyan Bhakat.

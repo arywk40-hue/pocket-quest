@@ -6,6 +6,8 @@ Listen to a chapter, pocket your phone, collect a leaf/bark/ground observation, 
 
 New project begun October 6, 2026 for the Hacktoberfest Week 1 **Touch Grass** challenge. Source: MIT; model weights and dependencies have their own terms.
 
+**[Try the public player walkthrough](https://outside-case.arywk40.chatgpt.site).** It demonstrates the story and notebook. Local Gemma photo review requires the companion below; the hosted walkthrough does not run the model or partner integrations.
+
 ## Clone and run
 
 Use Python 3.12+ and install [Ollama](https://ollama.com/download). Clone the public source repository:
@@ -27,6 +29,8 @@ python -m uvicorn backend.app:app --host 127.0.0.1 --port 8787
 ```
 
 Open **http://127.0.0.1:8787**. Settings identifies the connected model/mode. The default `.env` uses local Ollama at port 11434 and **Gemma 3 4B vision**. No OpenAI key is used. Initial model acquisition needs internet; keep the weights cached for local offline inference. Memory requirements and latency depend on your machine.
+
+For the downloaded models inspected on this Mac and the three selected partner integrations, see [local setup](docs/LOCAL-SETUP.md).
 
 ### If you mean Gemma 2
 
@@ -114,6 +118,6 @@ Node 24 is used for the DOM harness; running the app does not require Node. Test
 
 ## Submission status
 
-Implementation and software checks are available. **Real model runs, ElevenLabs generation, remote Sentry traces, native phone testing and a filmed outdoor trial remain pending.** No model binary or provider credentials were available in this editing environment. Do those steps before claiming the partner categories. The hosted walkthrough supports player review only.
+Implementation and software checks are available. A local Gemma 3 4B vision smoke check on October 6 returned a structured rejection for a synthetic blank image; it is not a field-photo accuracy evaluation. **Real-photo evaluation, ElevenLabs generation, remote Sentry traces, native phone testing and a filmed outdoor trial remain pending.** ElevenLabs and Sentry credentials are still missing from this local configuration. Complete the relevant demonstrations before claiming the partner categories. The hosted walkthrough supports player review only.
 
 See [submission draft](docs/SUBMISSION.md), [architecture](docs/ARCHITECTURE.md), [evaluation protocol](evaluation/README.md), and [verification record](docs/TESTING.md).
