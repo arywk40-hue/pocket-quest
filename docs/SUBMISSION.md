@@ -2,6 +2,7 @@
 title: "Outside Case: a local Gemma mystery that asks you to put your phone away"
 published: false
 tags: devchallenge, hf26challenge, ai, opensource
+main_image: https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/fj3cu220ilhlp0l18zic.webp
 ---
 
 *This is a submission for the [Hacktoberfest Open-Source AI Challenge Week 1: Touch Grass](https://dev.to/challenges/hacktoberfest-week1-2026-10-05).*
@@ -22,7 +23,9 @@ Unclear evidence keeps a clue open. Players can also confirm their own observati
 
 The walkthrough demonstrates the story and notebook. Gemma photo review runs through the local companion on your computer. The portable field kit supports collecting observations outside and reviewing them on the laptop afterward.
 
-<!-- Insert an actual app screenshot here using DEV's image uploader. -->
+![Outside Case player walkthrough showing The Missing Field Notes](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/z3purm4be4w6nmtntrfp.png)
+
+*The public player walkthrough; local Gemma review runs in the companion.*
 
 ## Code
 
@@ -37,8 +40,6 @@ The browser app uses plain HTML, CSS, and JavaScript. Notes stay in browser stor
 The companion uses **Gemma 3 4B vision through local Ollama**. It normalizes photographs, strips EXIF, and requests structured output: a decision, summary, and allowed clue pattern. Accepted patterns select authored story passages. Invalid output gets one retry and then a visible failure. Editing or importing evidence clears earlier model review.
 
 **Sentry** instruments the review workflow, including model readiness, agent invocation, model calls, validation, retries, and failures. Local receipts record trace IDs, outcomes, and timing. Request bodies and local variables are excluded, and default PII capture is disabled. The Sentry project is configured; remote dashboard verification is still pending.
-
-<!-- Insert a real Sentry model-review trace screenshot after confirming dashboard arrival. A setup screen or diagnostic event is not a model trace. Update the verification sentence above only after checking it. -->
 
 **Verification:** 32 Python tests and 11 JavaScript/DOM tests pass. They check software behavior using mocked providers. A separate live Gemma smoke request rejected a synthetic blank white image as unrelated evidence, taking 38.6 seconds including initial loading. That demonstrates a real integration request, not field-photo accuracy.
 
