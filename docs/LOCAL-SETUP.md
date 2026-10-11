@@ -34,17 +34,16 @@ Open <http://127.0.0.1:8787>. Check configuration without revealing credentials 
 .venv/bin/python scripts/doctor.py
 ```
 
-## Categories already selected
+## Intended Week 1 categories
 
-The submission draft lists three intended categories. The [Week 1 challenge page](https://dev.to/challenges/hacktoberfest-week1-2026-10-05) includes all three.
+The submission draft focuses on two categories. The [Week 1 challenge page](https://dev.to/challenges/hacktoberfest-week1-2026-10-05) includes both.
 
 | Category | Configuration | Evidence still required |
 | --- | --- | --- |
 | Best Use of Gemma | Local `gemma3:4b` vision model | Real field photos, prelabelled evaluation, successful and uncertain/failed examples |
-| Best Use of ElevenLabs | Add `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID` to `.env` | Prepare English/Hindi narration in Settings, check playback, retain actual account receipt |
 | Best Use of Sentry Agent Tracing | Add `SENTRY_DSN` to `.env` | Run a review and error case; inspect remote agent/model/validation spans and retain trace screenshots |
 
-Get an ElevenLabs API key from the account dashboard and a voice ID from the chosen voice. Get the Sentry DSN from a Python project's **Settings → Client Keys (DSN)**. Keep these values in `.env`, then restart the companion. The voice ID is an identifier; the API key is a secret. Do not put either provider's credentials in browser code or submission attachments.
+Get the Sentry DSN from a Python project's **Settings → Client Keys (DSN)**. Keep it in `.env`, then restart the companion. Do not put credentials in browser code or submission attachments. ElevenLabs remains an optional feature, but is not a category for this submission.
 
 Partner credits are linked from the challenge page at <https://hacktoberfest.com/my/promos>. A configured credential does not demonstrate a successful integration.
 

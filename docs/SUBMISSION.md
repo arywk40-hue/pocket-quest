@@ -67,7 +67,6 @@ The cover is an AI-generated illustration, not a field photograph.
 Follow [the partner setup guide](https://github.com/arywk40-hue/pocket-quest/blob/main/docs/PARTNER-SETUP.md) before replacing these pending items:
 
 - **Gemma:** model/hardware details, labelled evaluation report, actual branch-changing response and failure or uncertainty.
-- **ElevenLabs:** actual generated chapter playback, first/repeat cache receipt, and disconnected phone playback.
 - **Sentry:** dashboard screenshots matched to a successful review trace ID and a failed review trace ID; explain the failure and observed latency. A connectivity diagnostic alone is not agent tracing evidence.
 
 ## My Agent Session
@@ -78,6 +77,6 @@ Built with Codex assistance. Add a genuine exported session link if available.
 
 **Best Use of Gemma:** local Gemma 3 4B is integrated, and one synthetic blank-image smoke request returned a structured rejection. Add genuine field-photo results before claiming the quality of its visual decisions.
 
-**ElevenLabs and Sentry Agent Tracing:** add these categories only after successful account-backed runs and evidence from the generated audio and remote traces.
+**Best Use of Sentry Agent Tracing:** planned. Add the category once a real Gemma review and a failure produce matching remote Sentry traces. A diagnostic event alone is insufficient.
 
 Author: Ariyan Bhakat.
